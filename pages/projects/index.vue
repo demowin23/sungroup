@@ -8,19 +8,77 @@
         >
           DỰ ÁN
         </h1>
-        <div class="projects-grid">
+        <div v-if="loading" class="text-center py-8 text-lg text-yellow-600">
+          Đang tải...
+        </div>
+        <div v-else-if="error" class="text-center py-8 text-red-500">
+          {{ error }}
+        </div>
+        <div v-else>
+          <div class="projects-grid">
+            <div
+              v-for="project in paginatedProjects"
+              :key="project.id"
+              class="project-card"
+            >
+              <img :src="getImageUrl(project.main_image)" :alt="project.name" />
+              <div class="project-content">
+                <h3 class="project-title">
+                  {{ project.name }}
+                </h3>
+                <p class="project-desc">{{ project.short_intro }}</p>
+              </div>
+            </div>
+          </div>
+          <!-- Pagination -->
           <div
-            v-for="project in projects"
-            :key="project.id"
-            class="project-card"
+            v-if="totalPages > 1"
+            class="flex flex-wrap justify-between items-center mt-4 gap-2"
           >
-            <img :src="project.image" :alt="project.name" />
-            <div class="project-content">
-              <h3 class="project-title">
-                {{ project.name }}
-              </h3>
-              <p class="project-desc">{{ project.desc }}</p>
-              <a href="#" class="project-link">XEM THÊM</a>
+            <div class="flex space-x-2">
+              <button
+                class="px-3 py-1 rounded border border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-100 font-semibold"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
+                Trước
+              </button>
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                class="px-3 py-1 rounded border border-yellow-400 font-semibold"
+                :class="
+                  page === currentPage
+                    ? 'bg-yellow-400 text-white'
+                    : 'bg-white text-yellow-600 hover:bg-yellow-100'
+                "
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+              <button
+                class="px-3 py-1 rounded border border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-100 font-semibold"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
+                Sau
+              </button>
+            </div>
+            <div class="flex items-center">
+              <label for="pageSize" class="mr-2 font-medium"
+                >Số dự án/trang:</label
+              >
+              <select
+                id="pageSize"
+                v-model="pageSize"
+                @change="onPageSizeChange"
+                class="border rounded px-2 py-1"
+              >
+                <option :value="8">8</option>
+                <option :value="16">16</option>
+                <option :value="32">32</option>
+                <option :value="50">50</option>
+              </select>
             </div>
           </div>
         </div>
@@ -31,64 +89,66 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, watch } from "vue";
 import Header from "~/components/Header.vue";
 import Footer from "~/components/Footer.vue";
-const projects = [
-  {
-    id: 1,
-    name: "Sun Elite City Hạ Long",
-    desc: "Dự án đẳng cấp tại Hạ Long với vị trí đắc địa và tiện ích vượt trội.",
-    image:
-      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 2,
-    name: "Sun Feliza Suites",
-    desc: "Căn hộ cao cấp tại trung tâm thành phố, thiết kế hiện đại.",
-    image:
-      "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 3,
-    name: "Xanh Island Cát Bà",
-    desc: "Khu nghỉ dưỡng sinh thái đẳng cấp tại đảo Cát Bà.",
-    image:
-      "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 4,
-    name: "Sun Urban City Hà Nam",
-    desc: "Khu đô thị hiện đại, tiện nghi tại Hà Nam.",
-    image:
-      "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 5,
-    name: "Sun Symphony Residence Đà Nẵng",
-    desc: "Căn hộ ven biển với view tuyệt đẹp tại Đà Nẵng.",
-    image:
-      "https://images.unsplash.com/photo-1465101178521-c1a9136a3c8b?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 6,
-    name: "The Pathway Sầm Sơn",
-    desc: "Dự án nghỉ dưỡng cao cấp tại Sầm Sơn.",
-    image:
-      "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 7,
-    name: "Sun Pointe Residence",
-    desc: "Căn hộ sang trọng với tiện ích đỉnh cao.",
-    image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 8,
-    name: "Sunrise Park Villa",
-    desc: "Biệt thự nghỉ dưỡng ven biển tuyệt đẹp.",
-    image:
-      "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
-  },
-];
+import { useProjectStore } from "~/store/useProjectStore";
+import { useRuntimeConfig } from "#app";
+
+const projectStore = useProjectStore();
+const projects = ref([]);
+const currentPage = ref(1);
+const pageSize = ref(16);
+const totalPages = ref(1);
+const loading = ref(false);
+const error = ref(null);
+const config = useRuntimeConfig();
+const apiBase = config.public.apiBase;
+
+async function loadProjects(page = 1) {
+  loading.value = true;
+  error.value = null;
+  try {
+    const data = await projectStore.fetchProjects(page, pageSize.value);
+    if (data && Array.isArray(data.data)) {
+      projects.value = data.data;
+      totalPages.value =
+        data.totalPages || Math.ceil(data.total / pageSize.value);
+    } else if (Array.isArray(data)) {
+      projects.value = data;
+      totalPages.value = 1;
+    }
+  } catch (e) {
+    error.value = e?.message || "Lỗi khi tải danh sách dự án";
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadProjects(currentPage.value);
+});
+
+watch(currentPage, (page) => {
+  loadProjects(page);
+});
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+}
+
+function getImageUrl(image) {
+  if (!image) return "";
+  if (image.startsWith("http")) return image;
+  return `${apiBase}/uploads/${image}`;
+}
+
+const paginatedProjects = computed(() => projects.value);
+
+function onPageSizeChange() {
+  currentPage.value = 1;
+  loadProjects(1);
+}
 </script>
