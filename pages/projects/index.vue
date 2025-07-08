@@ -8,6 +8,12 @@
         >
           DỰ ÁN
         </h1>
+        <a
+          href="/projects/create"
+          class="text-yellow-600 px-4 rounded-md bg-white"
+        >
+          Tạo dự án
+        </a>
         <div v-if="loading" class="text-center py-8 text-lg text-yellow-600">
           Đang tải...
         </div>
