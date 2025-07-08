@@ -20,7 +20,7 @@
             v-for="project in projects"
             :key="project.id"
             class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col"
-            @click="goToProject(project.id)"
+            @click="goToProject(project.id, project.name)"
             style="cursor: pointer"
           >
             <img
@@ -128,8 +128,25 @@ function goToPage(page) {
   }
 }
 
-function goToProject(id) {
-  router.push({ path: `/projects/${id}` });
+function slugify(text) {
+  const from =
+    "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ";
+  const to =
+    "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD";
+  let slug = text;
+  for (let i = 0; i < from.length; i++) {
+    slug = slug.replace(new RegExp(from[i], "g"), to[i]);
+  }
+  return slug
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+function goToProject(id, name) {
+  const slug = slugify(name || "");
+  router.push({ path: `/projects/${id}-${slug}` });
 }
 
 function getImageUrl(image) {

@@ -50,6 +50,7 @@ export const useProjectStore = defineStore('project', () => {
     try {
       const data = await fetchJson(`${apiBase}/api/other-projects/${id}`);
       projectDetail.value = data;
+      return data;
     } catch (e: any) {
       error.value = e?.message || 'Lỗi khi tải chi tiết dự án';
     } finally {

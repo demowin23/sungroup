@@ -20,6 +20,7 @@
               v-for="project in paginatedProjects"
               :key="project.id"
               class="project-card"
+              @click="goToProject(project.id, project.name)"
             >
               <img :src="getImageUrl(project.main_image)" :alt="project.name" />
               <div class="project-content">
@@ -94,6 +95,7 @@ import Header from "~/components/Header.vue";
 import Footer from "~/components/Footer.vue";
 import { useProjectStore } from "~/store/useProjectStore";
 import { useRuntimeConfig } from "#app";
+import { useRouter } from "vue-router";
 
 const projectStore = useProjectStore();
 const projects = ref([]);
@@ -104,6 +106,7 @@ const loading = ref(false);
 const error = ref(null);
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
+const router = useRouter();
 
 async function loadProjects(page = 1) {
   loading.value = true;
@@ -150,5 +153,26 @@ const paginatedProjects = computed(() => projects.value);
 function onPageSizeChange() {
   currentPage.value = 1;
   loadProjects(1);
+}
+
+function slugify(text) {
+  const from =
+    "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ";
+  const to =
+    "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD";
+  let slug = text;
+  for (let i = 0; i < from.length; i++) {
+    slug = slug.replace(new RegExp(from[i], "g"), to[i]);
+  }
+  return slug
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+function goToProject(id, name) {
+  const slug = slugify(name || "");
+  router.push({ path: `/projects/${id}-${slug}` });
 }
 </script>

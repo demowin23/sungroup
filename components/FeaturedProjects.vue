@@ -29,3 +29,41 @@
     </div>
   </section>
 </template>
+
+<script>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+export default {
+  setup() {
+    const router = useRouter();
+    const project = ref(null);
+
+    function slugify(text) {
+      const from =
+        "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ";
+      const to =
+        "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD";
+      let slug = text;
+      for (let i = 0; i < from.length; i++) {
+        slug = slug.replace(new RegExp(from[i], "g"), to[i]);
+      }
+      return slug
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
+    }
+
+    function goToProject(id, name) {
+      const slug = slugify(name || "");
+      router.push({ path: `/projects/${id}-${slug}` });
+    }
+
+    return {
+      project,
+      goToProject,
+    };
+  },
+};
+</script>
