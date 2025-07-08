@@ -207,13 +207,16 @@ function resetForm() {
 }
 .quill-scrollable {
   max-height: 60vh;
+  height: 600px;
   overflow-y: auto;
 }
-.ql-toolbar {
+:deep(.ql-toolbar.ql-snow) {
+  border: 1px solid #d1d5db;
+  box-sizing: border-box;
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   position: sticky;
-  top: 0;
-  z-index: 20;
+  z-index: 1000;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  top: 0;
 }
 </style>
