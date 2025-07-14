@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   css: ['~/assets/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || 'https://103.110.87.30:4000',
+      apiBase: process.env.API_BASE || 'https://dadiland.com',
     },
   },
 })
